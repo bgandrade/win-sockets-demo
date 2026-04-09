@@ -15,7 +15,20 @@
         "kind": "build",
         "isDefault": true
       },
-      "detail": "Build via Makefile do alvo correspondente ao arquivo ativo"
+      "detail": "Compila o alvo do arquivo ativo e gera a saída em build/"
+    },
+    {
+      "type": "shell",
+      "label": "make all",
+      "command": "mingw32-make",
+      "args": [
+        "all"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"],
+      "detail": "Compila todos os executáveis em build/"
     },
     {
       "type": "shell",
@@ -28,7 +41,7 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
-      "detail": "Limpa os executaveis gerados"
+      "detail": "Remove a pasta build e todos os artefatos gerados"
     }
   ],
   "version": "2.0.0"

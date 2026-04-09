@@ -3,30 +3,44 @@
 CC ?= gcc
 GDB ?= gdb
 CFLAGS ?= -g -Wall -Wextra
-LDFLAGS ?= -lws2_32
+LDLIBS ?= -lws2_32
 
-TARGETS := server.exe client.exe
+BUILD_DIR := build
+PROGRAMS := server-tcp client-tcp server-udp client-udp
+EXECUTABLES := $(addprefix $(BUILD_DIR)/,$(addsuffix .exe,$(PROGRAMS)))
+OBJECTS := $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(PROGRAMS)))
 
-.PHONY: all clean server client debug-server debug-client
+.PHONY: all clean tcp udp debug-server-tcp debug-client-tcp debug-server-udp debug-client-udp $(PROGRAMS)
+.SECONDARY: $(OBJECTS)
 
-all: $(TARGETS)
+all: $(EXECUTABLES)
 
-server: server.exe
+tcp: $(BUILD_DIR)/server-tcp.exe $(BUILD_DIR)/client-tcp.exe
 
-client: client.exe
+udp: $(BUILD_DIR)/server-udp.exe $(BUILD_DIR)/client-udp.exe
 
-server.exe: server.c
-	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+$(PROGRAMS): %: $(BUILD_DIR)/%.exe
 
-client.exe: client.c
-	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
+$(BUILD_DIR):
+	if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
 
-debug-server: server.exe
-	$(GDB) .\server.exe
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-debug-client: client.exe
-	$(GDB) .\client.exe
+$(BUILD_DIR)/%.exe: $(BUILD_DIR)/%.o | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $< $(LDLIBS) -o $@
+
+debug-server-tcp: $(BUILD_DIR)/server-tcp.exe
+	$(GDB) .\$(BUILD_DIR)\server-tcp.exe
+
+debug-client-tcp: $(BUILD_DIR)/client-tcp.exe
+	$(GDB) .\$(BUILD_DIR)\client-tcp.exe
+
+debug-server-udp: $(BUILD_DIR)/server-udp.exe
+	$(GDB) .\$(BUILD_DIR)\server-udp.exe
+
+debug-client-udp: $(BUILD_DIR)/client-udp.exe
+	$(GDB) .\$(BUILD_DIR)\client-udp.exe
 
 clean:
-	-cmd /C del /Q server.exe
-	-cmd /C del /Q client.exe
+	-powershell -NoProfile -Command "if (Test-Path '$(BUILD_DIR)') { Remove-Item -LiteralPath '$(BUILD_DIR)' -Recurse -Force -ErrorAction SilentlyContinue }"
