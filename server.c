@@ -4,25 +4,25 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
+/*
+ * BACKLOG_MAX:
+ * Número máximo de conexões pendentes na fila do listen().
+ * O valor 5 é adequado para exemplo didático e evita fila grande desnecessária.
+ */
 #define BACKLOG_MAX 5
+
+/*
+ * BUFFER_SIZE:
+ * Tamanho máximo de dados lidos por mensagem.
+ * 128 bytes mantém o exemplo simples, com consumo de memória baixo.
+ */
 #define BUFFER_SIZE 128
-#define Mensagem_para_sair "#sair"
 
-SOCKET local_socket = INVALID_SOCKET;
-SOCKET remote_socket = INVALID_SOCKET;
-
-int remote_length = 0;
-int message_length = 0;
-
-unsigned short local_port = 0;
-unsigned short remote_port = 0;
-
-char message[BUFFER_SIZE];
-
-struct sockaddr_in local_address;
-struct sockaddr_in remote_address;
-
-WSADATA wsa_data;
+/*
+ * EXIT_MESSAGE:
+ * Comando textual usado pelo cliente para sinalizar encerramento da sessão.
+ */
+#define EXIT_MESSAGE "#sair"
 
 /* Exibe uma mensagem de erro e termina o programa */
 void msg_err_exit(const char *msg)
@@ -33,13 +33,22 @@ void msg_err_exit(const char *msg)
 
 int main(void)
 {
+    SOCKET local_socket = INVALID_SOCKET;
+    SOCKET remote_socket = INVALID_SOCKET;
+    WSADATA wsa_data;
+    struct sockaddr_in local_address;
+    struct sockaddr_in remote_address;
+    int remote_address_length = 0;
+    int message_length = 0;
     unsigned int input_port = 0;
+    unsigned short local_port = 0;
+    char message[BUFFER_SIZE];
 
-    // inicia o Winsock 2.0 (DLL)
-    if (WSAStartup(MAKEWORD(2, 0), &wsa_data) != 0)
+    /* Inicializa a API Winsock antes de criar sockets. */
+    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0)
         msg_err_exit("WSAStartup() failed\n");
 
-    // criando o socket local para o servidor
+    /* Cria o socket TCP que ficará escutando conexões na porta local. */
     local_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (local_socket == INVALID_SOCKET)
     {
@@ -47,28 +56,32 @@ int main(void)
         msg_err_exit("socket() failed\n");
     }
 
+    /* Lê e valida a porta de escuta do servidor. */
     printf("Porta local: ");
     if (scanf("%u", &input_port) != 1 || input_port > 65535)
     {
         closesocket(local_socket);
         WSACleanup();
-        msg_err_exit("porta invalida\n");
+        msg_err_exit("Porta inválida\n");
     }
     local_port = (unsigned short)input_port;
 
-    // zera a estrutura local_address
+    /* Zera a estrutura para evitar lixo de memória em campos não usados. */
     memset(&local_address, 0, sizeof(local_address));
 
-    // internet address family
+    /* Define IPv4 como família de endereços. */
     local_address.sin_family = AF_INET;
 
-    // porta local
+    /* Converte a porta para formato de rede (big-endian). */
     local_address.sin_port = htons(local_port);
 
-    // endereco
-    local_address.sin_addr.s_addr = htonl(INADDR_ANY); // inet_addr("127.0.0.1")
+    /*
+     * Aceita conexões em qualquer interface local (INADDR_ANY),
+     * útil para testes em loopback e também na rede local.
+     */
+    local_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    // interligando o socket com o endereço (local)
+    /* Associa o socket ao endereço/porta escolhidos. */
     if (bind(local_socket, (struct sockaddr *)&local_address, sizeof(local_address)) == SOCKET_ERROR)
     {
         closesocket(local_socket);
@@ -76,7 +89,7 @@ int main(void)
         msg_err_exit("bind() failed\n");
     }
 
-    // coloca o socket para escutar as conexoes
+    /* Coloca o socket em modo passivo para aguardar conexões de clientes. */
     if (listen(local_socket, BACKLOG_MAX) == SOCKET_ERROR)
     {
         closesocket(local_socket);
@@ -84,11 +97,15 @@ int main(void)
         msg_err_exit("listen() failed\n");
     }
 
-    remote_length = sizeof(remote_address);
+    remote_address_length = sizeof(remote_address);
 
-    printf("aguardando alguma conexao...\n");
+    printf("Aguardando conexão...\n");
 
-    remote_socket = accept(local_socket, (struct sockaddr *)&remote_address, &remote_length);
+    /*
+     * Aceita a próxima conexão pendente.
+     * A partir daqui, remote_socket representa a sessão com um cliente.
+     */
+    remote_socket = accept(local_socket, (struct sockaddr *)&remote_address, &remote_address_length);
 
     if (remote_socket == INVALID_SOCKET)
     {
@@ -97,14 +114,18 @@ int main(void)
         msg_err_exit("accept() failed\n");
     }
 
-    printf("conexao estabelecida com %s\n", inet_ntoa(remote_address.sin_addr));
-    printf("aguardando mensagens...\n");
+    printf("Conexão estabelecida com %s\n", inet_ntoa(remote_address.sin_addr));
+    printf("Aguardando mensagens...\n");
     do
     {
-        // limpa o buffer
-        memset(&message, 0, BUFFER_SIZE);
+        /* Limpa o buffer para facilitar depuração e evitar resíduos visuais. */
+        memset(message, 0, BUFFER_SIZE);
 
-        // recebe a mensagem do cliente
+        /*
+         * Recebe dados do cliente:
+         * - SOCKET_ERROR indica falha de rede
+         * - 0 indica que o cliente encerrou a conexão
+         */
         message_length = recv(remote_socket, message, BUFFER_SIZE - 1, 0);
         if (message_length == SOCKET_ERROR)
         {
@@ -118,15 +139,15 @@ int main(void)
 
         message[message_length] = '\0';
 
-        // exibe a mensagem na tela
+        /* Exibe no console o IP de origem e o conteúdo recebido. */
         printf("%s: %s\n", inet_ntoa(remote_address.sin_addr), message);
-    } while (strcmp(message, Mensagem_para_sair)); // sai quando receber um "#sair" do cliente
+    } while (strcmp(message, EXIT_MESSAGE));
 
-    printf("encerrando\n");
+    /* Libera sockets e finaliza o Winsock ao encerrar o servidor. */
+    printf("Encerrando\n");
     closesocket(remote_socket);
     closesocket(local_socket);
     WSACleanup();
 
-    system("PAUSE");
     return 0;
 }
