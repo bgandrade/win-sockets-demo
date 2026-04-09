@@ -1,0 +1,35 @@
+{
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "make active target",
+      "command": "mingw32-make",
+      "args": [
+        "${fileBasenameNoExtension}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": ["$gcc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "Build via Makefile do alvo correspondente ao arquivo ativo"
+    },
+    {
+      "type": "shell",
+      "label": "make clean",
+      "command": "mingw32-make",
+      "args": [
+        "clean"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "detail": "Limpa os executaveis gerados"
+    }
+  ],
+  "version": "2.0.0"
+}
