@@ -1,4 +1,6 @@
-# Cliente-Servidor Demo em C com TCP e UDP
+# win-sockts-demo
+
+Projeto **win-sockts-demo**: cliente-servidor demo em C com TCP e UDP.
 
 [![C](https://img.shields.io/badge/C-C17-blue.svg)](https://en.wikipedia.org/wiki/C17_(C_standard_revision))
 [![Windows](https://img.shields.io/badge/Plataforma-Windows-0078D6.svg)](https://learn.microsoft.com/windows/win32/winsock/windows-sockets-start-page-2)
