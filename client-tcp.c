@@ -88,7 +88,7 @@ int main(void)
 
     /* Tenta estabelecer conexão TCP com o servidor informado. */
     printf("Conectando ao servidor %s...\n", remote_ip);
-    if (connect(remote_socket, (struct sockaddr *)&remote_address, sizeof(remote_address)) == SOCKET_ERROR)
+    if (connect(remote_socket, (const struct sockaddr *)&remote_address, sizeof(remote_address)) == SOCKET_ERROR)
     {
         closesocket(remote_socket);
         WSACleanup();
