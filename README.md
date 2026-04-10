@@ -6,6 +6,7 @@
 [![TCP/UDP](https://img.shields.io/badge/Protocolos-TCP%20%7C%20UDP-orange.svg)](https://en.wikipedia.org/wiki/Internet_protocol_suite)
 [![Status](https://img.shields.io/badge/Status-Educacional-important.svg)](#)
 [![Build](https://img.shields.io/badge/Build-Makefile-lightgrey.svg)](./Makefile)
+[![License](https://img.shields.io/badge/Licen%C3%A7a-MIT-black.svg)](./LICENSE)
 
 Projeto demo para estudo de comunicação em rede no **Windows**, usando **Winsock 2.2**. O repositório contém duas implementações paralelas:
 
@@ -151,3 +152,7 @@ Este projeto é uma **demo educacional**, então algumas simplificações são d
 - não há retransmissão ou confirmação no UDP;
 - o protocolo de aplicação é apenas texto simples;
 - o foco está em clareza didática, não em arquitetura de produção.
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT. Veja o arquivo `LICENSE`.
