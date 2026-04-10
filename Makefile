@@ -2,7 +2,7 @@
 
 CC ?= gcc
 GDB ?= gdb
-CFLAGS ?= -g -Wall -Wextra
+CFLAGS ?= -std=c17 -g -Wall -Wextra
 LDLIBS ?= -lws2_32
 
 BUILD_DIR := build
